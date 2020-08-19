@@ -1,567 +1,67 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <title>GIB HMI</title>
+
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="shortcut icon" href="img/favicon.ico" type="image/x-icon">
-  
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
-  
-  <!-- Duplicate -->
-	<script src="js/jquery-1.9.1.min.js"></script>
-	<script type="text/javascript" src="js/clone-form-td.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="">
+  <meta name="author" content="">
 
-  
-	<!-- MAPS -->
-	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ==" crossorigin=""/>
-	<script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js" integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew==" crossorigin=""></script>
+  <title>The Big Picture - Start Bootstrap Template</title>
 
+  <!-- Bootstrap core CSS -->
+  <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
 
-	<style>
-		#map {
-			width: 100%;
-			height: 400px;
-		}
-	</style>
-	  
-	<!-- ROS -->
-	<script src="https://static.robotwebtools.org/EventEmitter2/current/eventemitter2.min.js"></script>
-	<script src="roslibjs/build/roslib.js"></script>
-	
-	<!-- CONFIG FILE -->
-	<script src="config/config.js"></script>
-
-
-<script>
-
-  // Connecting to ROS
-  // -----------------
-  var ros = new ROSLIB.Ros();
-
-  // If there is an error on the backend, an 'error' emit will be emitted.
-  ros.on('error', function(error) {
-    document.getElementById('connecting').style.display = 'none';
-    document.getElementById('connected').style.display = 'none';
-    document.getElementById('closed').style.display = 'none';
-    document.getElementById('error').style.display = 'inline';
-    console.log(error);
-  });
-
-  // Find out exactly when we made a connection.
-  ros.on('connection', function() {
-    console.log('Connection made!');
-    document.getElementById('connecting').style.display = 'none';
-    document.getElementById('error').style.display = 'none';
-    document.getElementById('closed').style.display = 'none';
-    document.getElementById('connected').style.display = 'inline';
-  });
-
-  ros.on('close', function() {
-    console.log('Connection closed.');
-    document.getElementById('connecting').style.display = 'none';
-    document.getElementById('connected').style.display = 'none';
-    document.getElementById('closed').style.display = 'inline';
-  });
-
-  // Create a connection to the rosbridge WebSocket server.
-  //ros.connect('ws://'+appConfig.ip+':9090');
-  ros.connect('ws://127.0.0.1:9090');
-
-
-		console.log(appConfig);
-
-
-
-
-
-	// Publishing a Topic
-	// ------------------
-	function pub(){
-		
-		var timestamp = new Date().getTime();
-		var x_position = document.getElementById('x_pos_b_1').value;
-		var y_position = document.getElementById('y_pos_b_1').value;
-
-
-		var cmdVel = new ROSLIB.Topic({
-		  ros : ros,
-		  name : '/cmd_vel',
-		  messageType : 'geometry_msgs/Twist'
-		});
-
-		var twist = new ROSLIB.Message({
-		linear : {
-		  x : Number(x_position),
-		  y : Number(y_position),
-		  z : 0.3
-		},
-		angular : {
-		  x : -0.1,
-		  y : -0.2,
-		  z : -0.3
-		}
-		});
-
-		console.log("Publishing cmd_vel");
-		cmdVel.publish(twist);
-
-/*
-		var cmdPose = new ROSLIB.Topic({
-		  ros : ros,
-		  name : "/cmdVel",
-		  messageType : 'geometry_msgs/PoseStamped'
-		});
-
-		var pose = new ROSLIB.Message({
-			header:{
-				seq: 0,
-				stamp: timestamp,
-				secs: 0,
-				nsecs: 0,
-				frame_id: 'base_link'
-			},
-			pose:{
-				position:{
-					x: Number(x_position),
-					y: Number(y_position),
-					z: 0.0
-				},
-				orientation:{
-					x: 0.0,
-					y: 0.0,
-					z: 0.0,
-					w: 0.0
-				}
-			}
-		});
-    
-		console.log("Publishing cmd_pose");
-		console.log(pose)
-		cmdPose.publish(pose);
-		*/
-		
-		
-	}
-
-
-  // listen gazebo bluffg
-   var listener_brov = new ROSLIB.Topic({
-    ros : ros,
-    name : appConfig.sub_msg,
-    messageType : 'nav_msgs/Odometry'
-  });
-
-	
-  
-  	var timeout = setInterval(loadCoordinates, 10000);		// 20 seconds to update coordinates
-	function loadCoordinates () {
-	  // Then we add a callback to be called every time a message is published on this topic.
-	  listener_brov.subscribe(function(message) {
-		 console.log('Received message on ' + listener_brov.name + ' x: ' + message.pose.pose.position.x + ' y: ' + message.pose.pose.position.y);
-		 document.getElementById("coord_x").innerHTML = message.pose.pose.position.x;
- 		 document.getElementById("coord_y").innerHTML = message.pose.pose.position.y;
-		 // If desired, we can unsubscribe from the topic as well.
-		 listener_brov.unsubscribe();
-	  });
-	}
-	
-	
-	function savetojson(){
-			
-	}
-
-
-	
-</script>
+  <!-- Custom styles for this template -->
+  <link href="css/the-big-picture.css" rel="stylesheet">
 
 </head>
+
 <body>
 
-<nav>
-	<div class="nav nav-tabs" id="nav-tab" role="tablist">
-   	<a class="nav-item nav-link active" id="nav-home-tab" data-toggle="tab" href="#nav-home" role="tab" aria-controls="nav-home" aria-selected="true">Home</a>
-   	<a class="nav-item nav-link" id="nav-readme-tab" data-toggle="tab" href="#nav-readme" role="tab" aria-controls="nav-readme" aria-selected="false">Readme</a>
-		<a class="nav-item nav-link" id="nav-config-tab" data-toggle="tab" href="#nav-config" role="tab" aria-controls="nav-config" aria-selected="false">Configurations</a>
-		<a class="nav-item nav-link" id="nav-about-tab" data-toggle="tab" href="#nav-about" role="tab" aria-controls="nav-about" aria-selected="false">About</a>
-	</div>
-</nav>
+  <!-- Navigation -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-bottom">
+    <div class="container">
+      <p class="navbar-brand">lui54lb3rt0 &copy;<a class="navbar-brand" href="unsplash.com">&#128248; by unsplash</a></p>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarResponsive">
+        <ul class="navbar-nav ml-auto">
+          <li class="nav-item active">
+            <a class="nav-link" href="#">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">About</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">Projects</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">Contact</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
 
+  <!-- Page Content -->
+  <section>
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-6">
+          <!--<h1 class="mt-5">lui54lb3rt0</h1>-->
+          
+        </div>
+      </div>
+    </div>
+  </section>
 
-<div class="tab-content" id="nav-tabContent">
-	<div class="tab-pane fade show active" id="nav-home" role="tabpanel" aria-labelledby="nav-home-tab">
-  
-		<!-- Page Content -->
-		<div class="container">
-
-			<!-- Item Heading -->
-			<h1 class="my-4">ROS HMI
-				<small>for GIB system</small>
-			</h1>
-			  
-			<!-- Item Row -->
-			<div class="row">
-
-				<div class="col-md-12">
-					<!--<img class="img-fluid" src="http://placehold.it/750x500" alt=""> -->
-					<div id='map'></div>
-				</div>
-
-
-			</div>
-			
-			<div class="row mt-3">
-				<div class="col">
-				
-					<div class="card-deck">
-						<div class="card">
-							<div class="card-header" name="buoyname" id="buoyname">bname</div>
-							
-							
-							<div class="card-body">
-									<div id="statusIndicator">
-										<div id="connecting" class="badge badge-primary text-white shadow">
-												Connecting to rosbridge...
-										</div>
-										
-										<div id="connected" class="badge badge-success text-white shadow" style="display:none">
-												Connected
-										</div>
-										
-										<div id="error" class="badge badge-warning text-white shadow" style="display:none">
-												Error in the backend!
-										</div>
-										
-										<div id="closed" class="badge badge-danger text-white shadow" style="display:none">
-												Connection closed.
-										</div>
-									</div>	
-									<hr>
-									<h5 class="my-3">Message Subscribed</h5>
-									<style type="text/css">
-										.tg th{border-width:0px;padding:10px 5px;}
-									</style>
-									<table class="tg">
-								  		<tr>
-									 		<th><h6 id="coord_x"></h6></th>
-									 		<th><h6 id="coord_y"></h6></th>
-							  			</tr>
-									</table>
-									<hr>
-									<h5 class="my-3">Publish Message</h5>
-								
-									<div class="row">
-										<div class="col-4">
-											<input type="number" class="form-control" id="x_pos_b_1" placeholder="Latitude" min="-90" max="90">
-										</div>
-										<div class="col-4">
-											<input type="number" class="form-control" id="y_pos_b_1" placeholder="Longitude" min="-180" max="180">
-										</div>
-
-										<div class="col-4">
-											<input type="text" class="form-control" id="y_coord" placeholder="speed">
-										</div>
-									</div>
-									<div class="row mt-3">
-										<div class="col-12">
-											<button type="button" onclick="pub()" class="btn btn-primary">Send message</button>
-										</div>
-									</div>
-							</div>
-							<div class="card-footer">
-								<small class="text-muted">Download <a onclick="savetojson()">here</a> log file for this buoy</small>
-							</div>
-						</div>
-
-					</div>
-					
-					
-				
-				</div>
-				<!-- /.col -->
-				<div class="col">
-				
-					<div class="card-deck">
-						<div class="card">
-							<div class="card-header" name="buoyname" id="buoyname">bname</div>
-							
-							
-							<div class="card-body">
-									<div id="statusIndicator">
-										<div id="connecting" class="badge badge-primary text-white shadow">
-												Connecting to rosbridge...
-										</div>
-										
-										<div id="connected" class="badge badge-success text-white shadow" style="display:none">
-												Connected
-										</div>
-										
-										<div id="error" class="badge badge-warning text-white shadow" style="display:none">
-												Error in the backend!
-										</div>
-										
-										<div id="closed" class="badge badge-danger text-white shadow" style="display:none">
-												Connection closed.
-										</div>
-									</div>	
-									<hr>
-									<h5 class="my-3">Message Subscribed</h5>
-									<style type="text/css">
-										.tg th{border-width:0px;padding:10px 5px;}
-									</style>
-									<table class="tg">
-								  		<tr>
-									 		<th><h6 id="coord_x"></h6></th>
-									 		<th><h6 id="coord_y"></h6></th>
-							  			</tr>
-									</table>
-									<hr>
-									<h5 class="my-3">Publish Message</h5>
-								
-									<div class="row">
-										<div class="col-4">
-											<input type="number" class="form-control" id="x_pos_b_1" placeholder="Latitude" min="-90" max="90">
-										</div>
-										<div class="col-4">
-											<input type="number" class="form-control" id="y_pos_b_1" placeholder="Longitude" min="-180" max="180">
-										</div>
-
-										<div class="col-4">
-											<input type="text" class="form-control" id="y_coord" placeholder="speed">
-										</div>
-									</div>
-									<div class="row mt-3">
-										<div class="col-12">
-											<button type="button" onclick="pub()" class="btn btn-primary">Send message</button>
-										</div>
-									</div>
-							</div>
-							<div class="card-footer">
-								<small class="text-muted">Download <a onclick="savetojson()">here</a> log file for this buoy</small>
-							</div>
-						</div>
-
-					</div>
-					
-					
-				
-				</div>
-				<!-- /.col -->
-				<div class="col">
-				
-					<div class="card-deck">
-						<div class="card">
-							<div class="card-header" name="buoyname" id="buoyname">bname</div>
-							
-							
-							<div class="card-body">
-									<div id="statusIndicator">
-										<div id="connecting" class="badge badge-primary text-white shadow">
-												Connecting to rosbridge...
-										</div>
-										
-										<div id="connected" class="badge badge-success text-white shadow" style="display:none">
-												Connected
-										</div>
-										
-										<div id="error" class="badge badge-warning text-white shadow" style="display:none">
-												Error in the backend!
-										</div>
-										
-										<div id="closed" class="badge badge-danger text-white shadow" style="display:none">
-												Connection closed.
-										</div>
-									</div>	
-									<hr>
-									<h5 class="my-3">Message Subscribed</h5>
-									<style type="text/css">
-										.tg th{border-width:0px;padding:10px 5px;}
-									</style>
-									<table class="tg">
-								  		<tr>
-									 		<th><h6 id="coord_x"></h6></th>
-									 		<th><h6 id="coord_y"></h6></th>
-							  			</tr>
-									</table>
-									<hr>
-									<h5 class="my-3">Publish Message</h5>
-								
-									<div class="row">
-										<div class="col-4">
-											<input type="number" class="form-control" id="x_pos_b_1" placeholder="Latitude" min="-90" max="90">
-										</div>
-										<div class="col-4">
-											<input type="number" class="form-control" id="y_pos_b_1" placeholder="Longitude" min="-180" max="180">
-										</div>
-
-										<div class="col-4">
-											<input type="text" class="form-control" id="y_coord" placeholder="speed">
-										</div>
-									</div>
-									<div class="row mt-3">
-										<div class="col-12">
-											<button type="button" onclick="pub()" class="btn btn-primary">Send message</button>
-										</div>
-									</div>
-							</div>
-							<div class="card-footer">
-								<small class="text-muted">Download <a onclick="savetojson()">here</a> log file for this buoy</small>
-							</div>
-						</div>
-
-					</div>
-					
-					
-				
-				</div>
-				<!-- /.col -->
-			</div>
-			<!-- /.row -->
-		</div>
-		<!-- /.container -->
-  
-  
-	</div>
-  	<div class="tab-pane fade" id="nav-readme" role="tabpanel" aria-labelledby="nav-readme-tab">
-		<!-- Page Content -->
-		<div class="container">
-		<br>
-			<p>Run the following commands in the terminal then refresh this page. Check the JavaScript console for more output.</p>
-			<ol>
-				<li><tt>roscore</tt></li>
-				<li><tt>roslaunch rosbridge_server rosbridge_websocket.launch</tt></li>
-				<li><tt>roslaunch bluerov_ffg gazebo.launch</tt></li>
-				<li><tt>roslaunch bluerov_ffg depth_cmd.launch</tt></li>
-			</ol>
-		</div>
-  	</div>
-  	
-  	<!-- Configuration Tab -->
-	<div class="tab-pane fade" id="nav-config" role="tabpanel" aria-labelledby="nav-config-tab">
-		<!-- Page Content -->
-		<div class="container">
-		<br>
-
-				<form name="submit-config" id="submit-config" method="post">
-				<div id="entry1" class="row clonedInput card">
-				
-					<div class="card">
-						<div class="card-header">
-							Buoy #
-						</div>
-						<div class="card-body">
-							<div class="col">
-								<div class="form-group">
-									<label for="buoyName">Buoy Name</label>
-									<input type="text" class="form-control form-control-sm" id="buoyName" aria-describedby="buoyName">
-									<small class="form-text text-muted">Insert buoy name here</small>
-								</div>
-								
-								<div class="form-group">
-									<label for="buoySrv">Buoy server ip</label>
-									<input type="text" class="form-control form-control-sm" id="buoySrv" aria-describedby="buoySrv">
-									<small class="form-text text-muted">Insert buoy server ip here</small>
-								</div>
-								
-								<div class="form-group">
-									<label for="buoySub">Buoy subscribe message</label>
-									<input type="text" class="form-control form-control-sm" id="buoySub" aria-describedby="buoySub">
-									<small class="form-text text-muted">Insert subscribe message name here</small>
-								</div>
-								
-								<div class="form-group">
-									<label for="buoyPub">Buoy publication message</label>
-									<input type="text" class="form-control form-control-sm" id="buoyPub" aria-describedby="buoyPub">
-									<small class="form-text text-muted">Insert publication message name here</small>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-				<button type="submit" class="btn btn-primary" onclick="savetojson()">Save</button>
-				</form>
-
-				<br>
-            <div id="addDelButtons">
-	            
-                <input type="button" class="btn btn-success" id="btnAdd" value="add buoy"> <input type="button" class="btn btn-danger" id="btnDel" value="remove buoy above">
-                <br>
-            </div>
-		
-		</div>  
-  	</div>
-  	<div class="tab-pane fade" id="nav-about" role="tabpanel" aria-labelledby="nav-about-tab">
-		<!-- Page Content -->
-		<div class="container">
-
-
-		</div>
-  	</div>
-</div>
-
-
-<script>  
-
-document.getElementById("buoyname").innerHTML = 'Buoy #' + String(appConfig.nome);
-
-// MAPS
-// ------------------
-
-
-var x = document.getElementById("coord_x").innerHTML;
-var y = document.getElementById("coord_y").innerHTML;
-var cities = L.layerGroup();
-
-
-	var mbAttr = 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, ' +
-			'<a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
-			'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
-		mbUrl = 'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw';
-
-	var grayscale   = L.tileLayer(mbUrl, {id: 'mapbox/light-v9', tileSize: 512, zoomOffset: -1, attribution: mbAttr}),
-		streets  = L.tileLayer(mbUrl, {id: 'mapbox/streets-v11', tileSize: 512, zoomOffset: -1, attribution: mbAttr});
-
-	var map = L.map('map', {
-		center: [x, y],
-		zoom: 10,
-		layers: [grayscale, cities]
-	});
-
-	var baseLayers = {
-		"Grayscale": grayscale,
-		"Streets": streets
-	};
-
-	var overlays = {
-		"Cities": cities
-	};
-	
-	loadmap();
-
-function loadmap(){
-	L.marker([x, y]).bindPopup('GIB #1').addTo(cities);/*,
-L.marker([x+10, y+10]).bindPopup('GIB #2').addTo(cities); */
-
-
-
-	L.control.layers(baseLayers, overlays).addTo(map);
- }
- 
-</script>
+  <!-- Bootstrap core JavaScript -->
+  <script src="vendor/jquery/jquery.min.js"></script>
+  <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 
 </body>
-<!-- Footer -->
-<footer class="page-footer font-small special-color-dark pt-4">
 
-  <!-- Copyright -->
-  <div class="footer-copyright text-center py-3">© 2020 Copyright
-    <a href="mailto:1101420@isep.ipp.pt" target="_blank"> Luís Silva | 1101420@isep.ipp.pt</a>
-  </div>
-  <!-- Copyright -->
-
-</footer>
-<!-- Footer -->
 </html>
