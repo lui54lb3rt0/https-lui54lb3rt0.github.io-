@@ -33,19 +33,19 @@
             <a class="nav-link" href="#">Home</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#">About</a>
+            <a class="nav-link" data-toggle="modal" data-target=".about" href="#">About</a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="#">Projects</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#">Contact</a>
+            <a class="nav-link" data-toggle="modal" data-target=".contact" href="#">Contact</a>
           </li>
         </ul>
       </div>
     </div>
   </nav>
-
+	
   <!-- Page Content -->
   <section>
     <div class="container">
@@ -57,7 +57,38 @@
       </div>
     </div>
   </section>
+<!-- Large modal -->
 
+
+<div class="modal fade about" tabindex="-1" role="dialog" aria-labelledby="about" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+		<div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">About</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      ...
+    </div>
+  </div>
+</div>
+	
+<div class="modal fade contact" tabindex="-1" role="dialog" aria-labelledby="contact" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+		<div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Contacts</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      ...
+    </div>
+  </div>
+</div>
+
+	
   <!-- Bootstrap core JavaScript -->
   <script src="vendor/jquery/jquery.min.js"></script>
   <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
